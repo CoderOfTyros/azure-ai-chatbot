@@ -3,7 +3,7 @@ from openai_client import init_openai_client
 
 def start_chat():
 
-    print("Welcome to your AI Chatbot! Write 'exit' to quit.\n")
+    print("Welcome to your AI Chatbot! Write 'exit' or 'quit' to quit.\n")
 
 
     client, deployment_name = init_openai_client()
