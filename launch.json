@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Azure Chatbot CLI",
+            "type": "python",
+            "request": "launch",
+            "module": "cli.main",
+            "console": "integratedTerminal"
+        }
+    ]
+}

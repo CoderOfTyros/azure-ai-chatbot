@@ -217,5 +217,5 @@ function_app/.venv/
 # OS/editor cruft (optional but recommended)
 .DS_Store
 .idea/
-.vscode/
-local.settings.json
+function_app/local.settings.json/
+function_app/.vscode/
