@@ -1,7 +1,8 @@
 from .openai_client import init_openai_client
 from ..session.cosmos_session_manager import CosmosSessionManager
-import uuid
-import re
+from .utils import summarize, trim_conversation_by_tokens 
+import re, uuid
+
 
 def clean_session_id(text):
     return re.sub(r"[^\w\-]", "", text.strip())
@@ -67,6 +68,20 @@ def start_chat():
             # Add user message
             conversation.append({"role": "user", "content": user_input})
 
+            # Summarize if needed
+            conversation = summarize(
+                        conversation=conversation,
+                        client=client,
+                        model=deployment_name)
+            
+            # Trim if conversation too long in tokens
+            conversation = trim_conversation_by_tokens(
+                        conversation=conversation,
+                        max_tokens=8192,
+                        model=deployment_name,
+                        safety_margin=500
+)
+
             # Generate assistant reply
             response = client.chat.completions.create(
                 messages=conversation,
@@ -82,8 +97,10 @@ def start_chat():
 
             conversation.append({"role": "assistant", "content": assistant_reply})
 
+            
+            # Keep all messages except the initial system prompt
+            session.messages = conversation[1:]
             # Save conversation to Cosmos
-            session.messages = [m for m in conversation if m["role"] != "system"]
             session.save()
 
         except Exception as e:
