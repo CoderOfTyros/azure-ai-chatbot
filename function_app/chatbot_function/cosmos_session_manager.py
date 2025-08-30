@@ -1,9 +1,7 @@
 from azure.cosmos import CosmosClient, PartitionKey
 import os
 from datetime import datetime
-from dotenv import load_dotenv
 
-load_dotenv()
 
 class CosmosSessionManager:
     def __init__(self, session_id, db_name="ChatDB", container_name="Sessions"):
