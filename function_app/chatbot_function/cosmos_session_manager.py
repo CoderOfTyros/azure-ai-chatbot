@@ -8,8 +8,8 @@ load_dotenv()
 class CosmosSessionManager:
     def __init__(self, session_id, db_name="ChatDB", container_name="Sessions"):
         self.session_id = session_id
-        self.cosmos_uri = os.getenv("COSMOS_URI")
-        self.cosmos_key = os.getenv("COSMOS_KEY")
+        self.cosmos_uri = os.environ.get("COSMOS_URI")
+        self.cosmos_key = os.environ.get("COSMOS_KEY")
 
         self.client = CosmosClient(self.cosmos_uri, credential=self.cosmos_key)
         self.db = self.client.create_database_if_not_exists(id=db_name)
