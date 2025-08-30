@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 from .search_client import get_search_client
 
-DEFAULT_SELECT = "HotelName,Description,Tags"  # aligns with hotels sample; change later for your own index
+DEFAULT_SELECT = "HotelName,Description,Tags"  
 
 def search_top_k(query: str, k: int = 5, select: str = None) -> List[Dict[str, Any]]:
     """
@@ -11,7 +11,7 @@ def search_top_k(query: str, k: int = 5, select: str = None) -> List[Dict[str, A
     client = get_search_client()
     fields = select or DEFAULT_SELECT
 
-    # BM25 only (no semantic ranker)
+    
     results = client.search(
         search_text=query,
         top=k,

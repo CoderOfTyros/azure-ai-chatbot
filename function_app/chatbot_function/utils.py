@@ -17,11 +17,11 @@ def summarize(conversation, client, model, max_messages=5, num_to_summarize=5):
     """
 
     if len(conversation) <= 1 + num_to_summarize + max_messages:
-        return conversation  # Not long enough to summarize
+        return conversation  # not long enough to summarize
 
     system_prompt = conversation[0]
 
-    # Get oldest N messages (excluding system prompt)
+    # get oldest N messages (excluding system prompt)
     old_history = conversation[1:1 + num_to_summarize]
     recent_messages = conversation[-max_messages:]
 

@@ -1,5 +1,3 @@
-# NOTE: This file is duplicated in both CLI and Function App for simplicity.
-
 import os
 from openai import AzureOpenAI
 
