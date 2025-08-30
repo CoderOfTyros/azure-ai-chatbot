@@ -1,4 +1,3 @@
-
 import azure.functions as func
 import json
 import uuid
@@ -7,6 +6,9 @@ import logging
 from .openai_client import init_openai_client
 from .cosmos_session_manager import CosmosSessionManager
 from .utils import summarize, trim_conversation_by_tokens
+
+from .retrieval import search_top_k, format_sources_for_prompt
+from .prompts import make_grounded_user_message
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -22,10 +24,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         
         session = CosmosSessionManager(session_id)
 
-        
         if user_message.lower() == "clear":
             session.clear()
-
             return func.HttpResponse(
                 json.dumps({
                     "status": "Session cleared",
@@ -39,7 +39,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             new_session_id = str(uuid.uuid4())
             new_session = CosmosSessionManager(new_session_id)
             new_session.save()
-
             return func.HttpResponse(
                 json.dumps({
                     "status": "New session started",
@@ -51,7 +50,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         if user_message.lower() == "history":
             history = session.messages or []
-
             return func.HttpResponse(
                 json.dumps({
                     "history": history,
@@ -61,21 +59,26 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 mimetype="application/json"
             )
 
+       
         system_prompt = f"You are a helpful assistant specialized in {role}." if role else "You are a helpful assistant."
         conversation = [{"role": "system", "content": system_prompt}]
         if session.messages:
             conversation += session.messages
 
-       
-        conversation.append({"role": "user", "content": user_message})
+        # ---- RAG (semantic/BM25) step: retrieve sources & ground the query ----
+        passages = search_top_k(user_message, k=5)  # hotels sample expects 5
+        sources_formatted = format_sources_for_prompt(passages)
+        grounded_user_msg = make_grounded_user_message(user_message, sources_formatted)
+        conversation.append(grounded_user_msg)
+        # ---------------------------------------------------------------------
 
-        
+       
         client, deployment_name = init_openai_client()
 
-        # Summarize if needed
+        # Summarize if needed 
         conversation = summarize(conversation, client, deployment_name)
 
-     
+       
         conversation = trim_conversation_by_tokens(
             conversation=conversation,
             max_tokens=8192,
@@ -83,11 +86,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             safety_margin=500
         )
 
-      
+        
         response = client.chat.completions.create(
             model=deployment_name,
             messages=conversation,
-            temperature=1.0,
+            temperature=0.2, 
             max_tokens=4096,
             top_p=1.0,
         )
@@ -95,7 +98,6 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         reply = response.choices[0].message.content.strip()
         conversation.append({"role": "assistant", "content": reply})
 
-        # Save messages to Cosmos (excluding system prompt)
         session.messages = conversation[1:]
         session.save()
 
@@ -114,16 +116,3 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             status_code=500,
             mimetype="application/json"
         )
-
-
-
-
-
-
-
-
-
-
-
-
-

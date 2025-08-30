@@ -2,3 +2,5 @@ openai
 python-dotenv
 azure-cosmos>=4.7.0
 azure-functions
+azure-search-documents==11.6.0b5
+azure-identity==1.16.1
