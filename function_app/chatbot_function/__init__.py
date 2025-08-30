@@ -1,45 +1,129 @@
-# function_app/chatbot_func/__init__.py
+
 import azure.functions as func
 import json
+import uuid
+import logging
 
+from .openai_client import init_openai_client
+from .cosmos_session_manager import CosmosSessionManager
+from .utils import summarize, trim_conversation_by_tokens
 
-import sys
-import os
-sys.path.append(os.path.dirname(__file__))
-
-from openai_client import init_openai_client
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     try:
         body = req.get_json()
-        message = body.get("message")
+        user_message = body.get("message")
+        session_id = body.get("session_id") or str(uuid.uuid4())
+        role = body.get("role", "")
 
-        if not message:
-            return func.HttpResponse("Missing 'message' field in JSON body", status_code=400)
+        if not user_message:
+            return func.HttpResponse("Missing 'message' field.", status_code=400)
 
+        
+        session = CosmosSessionManager(session_id)
+
+        
+        if user_message.lower() == "clear":
+            session.clear()
+
+            return func.HttpResponse(
+                json.dumps({
+                    "status": "Session cleared",
+                    "session_id": session_id
+                }),
+                status_code=200,
+                mimetype="application/json"
+            )
+
+        if user_message.lower() == "restart":
+            new_session_id = str(uuid.uuid4())
+            new_session = CosmosSessionManager(new_session_id)
+            new_session.save()
+
+            return func.HttpResponse(
+                json.dumps({
+                    "status": "New session started",
+                    "session_id": new_session_id
+                }),
+                status_code=200,
+                mimetype="application/json"
+            )
+
+        if user_message.lower() == "history":
+            history = session.messages or []
+
+            return func.HttpResponse(
+                json.dumps({
+                    "history": history,
+                    "session_id": session_id
+                }),
+                status_code=200,
+                mimetype="application/json"
+            )
+
+        system_prompt = f"You are a helpful assistant specialized in {role}." if role else "You are a helpful assistant."
+        conversation = [{"role": "system", "content": system_prompt}]
+        if session.messages:
+            conversation += session.messages
+
+       
+        conversation.append({"role": "user", "content": user_message})
+
+        
         client, deployment_name = init_openai_client()
 
-        conversation = [
-            { "role": "system", "content": "You are a helpful assistant." },
-            { "role": "user", "content": message }
-        ]
+        # Summarize if needed
+        conversation = summarize(conversation, client, deployment_name)
 
-        response = client.chat.completions.create(
-            messages=conversation,
-            max_tokens=4096,
-            temperature=1.0,
-            top_p=1.0,
-            model=deployment_name
+     
+        conversation = trim_conversation_by_tokens(
+            conversation=conversation,
+            max_tokens=8192,
+            model=deployment_name,
+            safety_margin=500
         )
 
+      
+        response = client.chat.completions.create(
+            model=deployment_name,
+            messages=conversation,
+            temperature=1.0,
+            max_tokens=4096,
+            top_p=1.0,
+        )
 
-        reply = response.choices[0].message.content
+        reply = response.choices[0].message.content.strip()
+        conversation.append({"role": "assistant", "content": reply})
+
+        # Save messages to Cosmos (excluding system prompt)
+        session.messages = conversation[1:]
+        session.save()
+
+        logging.info(f"Reply being returned to client: {reply}")
 
         return func.HttpResponse(
-            json.dumps({ "reply": reply }),
+            json.dumps({"reply": reply, "session_id": session_id}),
             status_code=200,
             mimetype="application/json"
         )
 
     except Exception as e:
-        return func.HttpResponse(f"Error: {str(e)}", status_code=500)
+        logging.exception("Function error:")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json"
+        )
+
+
+
+
+
+
+
+
+
+
+
+
+

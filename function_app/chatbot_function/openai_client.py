@@ -9,10 +9,10 @@ def init_openai_client():
     api_version = os.environ.get("AZURE_OPENAI_API_VERSION")
     deployment_name = os.environ.get("AZURE_OPENAI_DEPLOYMENT_NAME")
 
-    print(endpoint, api_key, api_version, deployment_name)
 
     if not all([endpoint, api_key, api_version, deployment_name]):
         raise ValueError("Missing one or more required environment variables.")
+    
 
     client = AzureOpenAI(
         api_version=api_version,

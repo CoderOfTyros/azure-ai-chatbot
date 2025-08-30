@@ -14,6 +14,8 @@ def init_openai_client():
 
     if not all([endpoint, api_key, api_version, deployment_name]):
         raise ValueError("Missing one or more required environment variables.")
+    
+
 
     client = AzureOpenAI(
         api_version=api_version,
