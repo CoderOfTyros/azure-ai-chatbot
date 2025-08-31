@@ -55,10 +55,10 @@ def count_tokens(messages, model="gpt-4"):
     encoding = tiktoken.encoding_for_model(model)
     tokens = 0
     for message in messages:
-        tokens += 4  # overhead per message
+        tokens += 4 
         for key, value in message.items():
             tokens += len(encoding.encode(value))
-    tokens += 2  # assistant priming
+    tokens += 2  
     return tokens
 
 def trim_conversation_by_tokens(conversation, max_tokens=8192, model="gpt-4", safety_margin=500):

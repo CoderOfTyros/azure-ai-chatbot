@@ -1,4 +1,3 @@
-# function_app/chatbot_function/prompts.py
 from typing import Dict
 
 GROUNDED_PROMPT = """
