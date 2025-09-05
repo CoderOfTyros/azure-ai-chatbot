@@ -1,7 +1,7 @@
 import tiktoken
 
 
-def summarize(conversation, client, model, max_messages=5, num_to_summarize=5):
+def summarize(conversation, client, model, num_to_summarize=5):
     """
     Summarize the oldest messages in a conversation if it exceeds a length threshold.
 
@@ -9,21 +9,20 @@ def summarize(conversation, client, model, max_messages=5, num_to_summarize=5):
         conversation (list): Full conversation list including system prompt.
         client (AzureOpenAI): OpenAI client.
         model (str): OpenAI deployment name.
-        max_messages (int): Number of most recent messages to keep.
         num_to_summarize (int): Number of old messages to summarize.
 
     Returns:
         list: Trimmed and/or summarized conversation.
     """
 
-    if len(conversation) <= 1 + num_to_summarize + max_messages:
+    if len(conversation) <= 1 + num_to_summarize * 2:
         return conversation  # not long enough to summarize
 
     system_prompt = conversation[0]
 
     # get oldest N messages (excluding system prompt)
     old_history = conversation[1:1 + num_to_summarize]
-    recent_messages = conversation[-max_messages:]
+    recent_messages = conversation[1 + num_to_summarize:]
 
     summary_prompt = [
         {"role": "system", "content": "Summarize the following chat history briefly:"},

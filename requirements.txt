@@ -5,3 +5,7 @@ azure-functions
 azure-search-documents==11.6.0b5
 azure-identity==1.16.1
 tiktoken
+azure-storage-blob>=12.20.0
+azure-ai-formrecognizer>=3.3.0
+
+

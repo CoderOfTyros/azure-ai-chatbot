@@ -65,12 +65,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         if session.messages:
             conversation += session.messages
 
-        # ---- RAG (semantic/BM25) step: retrieve sources & ground the query ----
+        # ---- RAG (BM25) step: retrieve sources & ground the query ----
         passages = search_top_k(user_message, k=5)  # hotels sample expects 5
         sources_formatted = format_sources_for_prompt(passages)
         grounded_user_msg = make_grounded_user_message(user_message, sources_formatted)
         conversation.append(grounded_user_msg)
-        # ---------------------------------------------------------------------
+       
 
        
         client, deployment_name = init_openai_client()
