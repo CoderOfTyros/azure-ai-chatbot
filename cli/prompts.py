@@ -2,14 +2,14 @@ from typing import Dict
 
 GROUNDED_PROMPT = """
 Decision rule:
-- If the Sources below clearly contain relevant facts that answer the Query, answer ONLY using those facts. Include a short "Sources:" line at the end listing the source titles you used.
-- If the Sources are irrelevant or insufficient to answer the Query, respond gracefully with: "This is not in my expertise."
-
-Special cases:
-- If the Query is a greeting or a meta-question about the assistant (e.g., "what's your role?", "who are you?", "what can you do?"), ignore Sources and answer directly according to the system instructions (your role). Do not mention the knowledge base or sources.
+- If the Sources below contain relevant facts that answer the Query, answer using those facts.
+- If the Query asks for interpretation, opinion, themes, character analysis, or discussion ABOUT the stories in the Sources, provide thoughtful commentary grounded in the Sources (paraphrase, quote short snippets, and tie claims back to them).
+- Do NOT invent facts that contradict the Sources.
+- Only when the Query is clearly unrelated to the stories (not about their plots, characters, style, or themes), say you can only discuss the provided stories.
 
 Formatting:
-- Never invent facts.
+- Be concise and natural.
+- End with a short "Sources:" line listing the story titles you drew from.
 
 Query:
 {query}

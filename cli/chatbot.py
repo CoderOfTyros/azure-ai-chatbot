@@ -3,6 +3,7 @@ from ..session.cosmos_session_manager import CosmosSessionManager
 from .utils import summarize, trim_conversation_by_tokens
 from .retrieval import search_top_k_hybrid, format_sources_for_prompt
 from .prompts import make_grounded_user_message
+from query_rewrite import rewrite_query
 
 import re, uuid, os
 
@@ -66,9 +67,15 @@ def start_chat():
                     print("Assistant: No messages yet.\n")
                 continue
 
-            # -------- RAG grounding 
+            try:
+             search_query = rewrite_query(client, deployment_name, conversation, user_input)
+          
+            except Exception:
+             search_query = user_input  # safe fallback
+
+            # ---- RAG step: use the rewritten query for retrieval ----
             SEM_CFG = os.getenv("AZURE_SEARCH_SEMANTIC_CONFIG")  
-            passages = search_top_k_hybrid(user_input, k=5, semantic_config=SEM_CFG)
+            passages = search_top_k_hybrid(search_query, k=5, semantic_config=SEM_CFG)
             sources_formatted = format_sources_for_prompt(passages)
             grounded_user_msg = make_grounded_user_message(user_input, sources_formatted)
             conversation.append(grounded_user_msg)
