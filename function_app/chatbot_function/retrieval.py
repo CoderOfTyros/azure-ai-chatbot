@@ -1,42 +1,54 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
+from azure.search.documents.models import VectorizedQuery
 from .search_client import get_search_client
+from .embed import embed_text  
 
-DEFAULT_SELECT = "HotelName,Description,Tags"  
+# Fields in your RAG index (adjust if yours differ)
+RAG_SELECT = "title,chunk,parent_id,chunk_id"
+RAG_VECTOR_FIELD = "text_vector"  # embedding field in the index
 
-def search_top_k(query: str, k: int = 5, select: str = None) -> List[Dict[str, Any]]:
+def search_top_k_hybrid(query: str, k: int = 5, semantic_config: Optional[str] = None) -> List[Dict[str, Any]]:
     """
-    Runs a classic BM25 search against Azure AI Search and returns normalized passages.
-    Returns: [{ title, content, tags, raw }]
+    Hybrid retrieval against your RAG index: BM25 over 'chunk' + vector over 'text_vector'.
+    Returns: [{ title, content, raw }]
     """
     client = get_search_client()
-    fields = select or DEFAULT_SELECT
+    vec = embed_text(query)
 
-    
-    results = client.search(
-        search_text=query,
-        top=k,
-        select=fields
+    vq = VectorizedQuery(
+        vector=vec,
+        k_nearest_neighbors=k,   
+        fields=RAG_VECTOR_FIELD
     )
+
+    kwargs = dict(
+        search_text=query,  # keyword/BM25 (and semantic if configured)
+        vector_queries=[vq],
+        select=RAG_SELECT,
+        top=k,
+    )
+    if semantic_config:
+        kwargs.update(query_type="semantic", semantic_configuration_name=semantic_config)
+
+    try:
+        results = client.search(**kwargs)
+    except Exception:
+        # Fallback to keyword-only if vector fails (quota, field mismatch, etc.)
+        results = client.search(search_text=query, select=RAG_SELECT, top=k)
 
     passages: List[Dict[str, Any]] = []
     for doc in results:
-        title = str(doc.get("HotelName") or doc.get("title") or "")
-        content = str(doc.get("Description") or doc.get("content") or "")
-        tags = doc.get("Tags") or doc.get("tags") or []
+        title = str(doc.get("title") or "")
+        content = str(doc.get("chunk") or "")
         passages.append({
             "title": title.strip(),
             "content": content.strip(),
-            "tags": tags,
             "raw": doc
         })
     return passages
 
 def format_sources_for_prompt(passages: List[Dict[str, Any]]) -> str:
-    """
-    Matches the quickstart style: 'HotelName:Description:Tags'.
-    """
     lines = []
     for p in passages:
-        tags = ", ".join(p["tags"]) if isinstance(p["tags"], (list, tuple)) else str(p["tags"])
-        lines.append(f'{p["title"]}:{p["content"]}:{tags}')
+        lines.append(f'{p["title"]}:{p["content"]}:')  
     return "\n".join(lines)

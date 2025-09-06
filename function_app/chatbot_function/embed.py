@@ -1,12 +1,11 @@
 import os
-from dotenv import load_dotenv
 from .openai_client import init_openai_client
 
-load_dotenv()
+
 
 client, _ = init_openai_client()
 
-embedding_model = os.getenv("AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
+embedding_model = os.environ.get("AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
 
 def embed_text(text: str) -> list[float]:
     response = client.embeddings.create(model=embedding_model, input=[text])

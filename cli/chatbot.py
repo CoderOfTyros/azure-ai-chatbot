@@ -1,12 +1,10 @@
-# cli/chatbot.py
-
 from .openai_client import init_openai_client
 from ..session.cosmos_session_manager import CosmosSessionManager
 from .utils import summarize, trim_conversation_by_tokens
-from .retrieval import search_top_k, format_sources_for_prompt
+from .retrieval import search_top_k_hybrid, format_sources_for_prompt
 from .prompts import make_grounded_user_message
 
-import re, uuid
+import re, uuid, os
 
 def clean_session_id(text):
     return re.sub(r"[^\w\-]", "", text.strip())
@@ -68,11 +66,13 @@ def start_chat():
                     print("Assistant: No messages yet.\n")
                 continue
 
-            # -------- RAG grounding (BM25) instead of raw user msg --------
-            passages = search_top_k(user_input, k=5)
+            # -------- RAG grounding 
+            SEM_CFG = os.getenv("AZURE_SEARCH_SEMANTIC_CONFIG")  
+            passages = search_top_k_hybrid(user_input, k=5, semantic_config=SEM_CFG)
             sources_formatted = format_sources_for_prompt(passages)
             grounded_user_msg = make_grounded_user_message(user_input, sources_formatted)
             conversation.append(grounded_user_msg)
+
             # ---------------------------------------------------------------
 
             # Summarize if needed

@@ -1,30 +1,30 @@
 import azure.functions as func
 import json
-import uuid
+import uuid, os
 import logging
 
 from .openai_client import init_openai_client
 from .cosmos_session_manager import CosmosSessionManager
 from .utils import summarize, trim_conversation_by_tokens
 
-from .retrieval import search_top_k, format_sources_for_prompt
+from .retrieval import search_top_k_hybrid, format_sources_for_prompt
 from .prompts import make_grounded_user_message
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     try:
         body = req.get_json()
-        user_message = body.get("message")
+        user_input = body.get("message")
         session_id = body.get("session_id") or str(uuid.uuid4())
         role = body.get("role", "")
 
-        if not user_message:
+        if not user_input:
             return func.HttpResponse("Missing 'message' field.", status_code=400)
 
         
         session = CosmosSessionManager(session_id)
 
-        if user_message.lower() == "clear":
+        if user_input.lower() == "clear":
             session.clear()
             return func.HttpResponse(
                 json.dumps({
@@ -35,7 +35,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 mimetype="application/json"
             )
 
-        if user_message.lower() == "restart":
+        if user_input.lower() == "restart":
             new_session_id = str(uuid.uuid4())
             new_session = CosmosSessionManager(new_session_id)
             new_session.save()
@@ -48,7 +48,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 mimetype="application/json"
             )
 
-        if user_message.lower() == "history":
+        if user_input.lower() == "history":
             history = session.messages or []
             return func.HttpResponse(
                 json.dumps({
@@ -66,9 +66,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             conversation += session.messages
 
         # ---- RAG (BM25) step: retrieve sources & ground the query ----
-        passages = search_top_k(user_message, k=5)  # hotels sample expects 5
+        SEM_CFG = os.environ.get("AZURE_SEARCH_SEMANTIC_CONFIG")  
+        passages = search_top_k_hybrid(user_input, k=5, semantic_config=SEM_CFG)
         sources_formatted = format_sources_for_prompt(passages)
-        grounded_user_msg = make_grounded_user_message(user_message, sources_formatted)
+        grounded_user_msg = make_grounded_user_message(user_input, sources_formatted)
         conversation.append(grounded_user_msg)
        
 

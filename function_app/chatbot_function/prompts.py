@@ -2,14 +2,13 @@ from typing import Dict
 
 GROUNDED_PROMPT = """
 Decision rule:
-- If the Sources below clearly contain relevant facts that answer the Query, answer ONLY using those facts. Include a short "Sources:" line listing the source titles you used.
-- If the Sources are irrelevant or insufficient to answer the Query, answer using your general knowledge. Do NOT mention the knowledge base or sources, and do NOT fabricate citations.
+- If the Sources below clearly contain relevant facts that answer the Query, answer ONLY using those facts. Include a short "Sources:" line at the end listing the source titles you used.
+- If the Sources are irrelevant or insufficient to answer the Query, respond gracefully with: "This is not in my expertise."
 
 Special cases:
-- If the Query is a greeting or a meta-question about the assistant (e.g., "what's your role?", "who are you?", "what can you do?"), ignore Sources and answer directly based on the role assigned in the system instructions (your role). Do not mention the knowledge base or sources.
+- If the Query is a greeting or a meta-question about the assistant (e.g., "what's your role?", "who are you?", "what can you do?"), ignore Sources and answer directly according to the system instructions (your role). Do not mention the knowledge base or sources.
 
 Formatting:
-- Be concise and use bullet points when listing items.
 - Never invent facts.
 
 Query:
