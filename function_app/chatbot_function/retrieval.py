@@ -22,7 +22,7 @@ def search_top_k_hybrid(query: str, k: int = 5, semantic_config: Optional[str] =
     )
 
     kwargs = dict(
-        search_text=query,  # keyword/BM25 (and semantic if configured)
+        search_text=query,  # keyword/BM25 and semantic 
         vector_queries=[vq],
         select=RAG_SELECT,
         top=k,

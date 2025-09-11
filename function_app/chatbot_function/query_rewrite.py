@@ -4,7 +4,7 @@ REWRITE_PROMPT = """You will be given a chat history and the latest user prompt.
 Rewrite the latest user prompt into a single, self-contained question/prompt that preserves context.
 - Keep names, places, or references resolved (no pronouns like he/she/they/it).
 - Do NOT add new information not present in the history.
-Return only the rewritten question, nothing else.
+Return only the rewritten question/prompt, nothing else.
 
 Chat history (most recent last):
 {history}
