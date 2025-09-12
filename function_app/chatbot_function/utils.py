@@ -1,4 +1,5 @@
 import tiktoken
+import re
 
 
 def summarize(conversation, client, model, num_to_summarize=5):
@@ -84,3 +85,12 @@ def trim_conversation_by_tokens(conversation, max_tokens=8192, model="gpt-4", sa
             break
 
     return [system_prompt] + trimmed
+
+def clean_text(text: str) -> str:
+    if not text:
+        return ""
+    t = text.replace("\r\n", "\n").replace("\r", "\n")
+    t = re.sub(r"[ \t\f\v]+", " ", t)
+    t = re.sub(r"\n{3,}", "\n\n", t)
+    t = "".join(ch for ch in t if ch == "\n" or ch == "\t" or ord(ch) >= 32)
+    return t.strip()

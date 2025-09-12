@@ -2,6 +2,7 @@ openai
 python-dotenv
 azure-cosmos>=4.7.0
 azure-functions
-azure-search-documents==11.6.0b5
+azure-ai-documentintelligence
+azure-search-documents==11.5.0
 azure-identity==1.16.1
 tiktoken
