@@ -81,8 +81,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         # ----                  RAG step                     ----
         
-        SEM_CFG = os.environ.get("AZURE_SEARCH_SEMANTIC_CONFIG")  
-        passages = search_top_k_hybrid(search_query, k=5, semantic_config=SEM_CFG)
+        # SEM_CFG = os.environ.get("AZURE_SEARCH_SEMANTIC_CONFIG")  
+        passages = search_top_k_hybrid(search_query, k=5)
         sources_formatted = format_sources_for_prompt(passages)
         grounded_user_msg = make_grounded_user_message(user_input, sources_formatted)
 
@@ -122,7 +122,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         logging.info(f"Reply being returned to client: {reply}")
 
         return func.HttpResponse(
-            json.dumps({"reply": reply, "session_id": session_id}),
+            json.dumps({"reply": reply, "session_id": session_id}, ensure_ascii=False),
             status_code=200,
             mimetype="application/json"
         )

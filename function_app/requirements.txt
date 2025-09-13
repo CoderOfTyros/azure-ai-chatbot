@@ -2,7 +2,8 @@ openai
 python-dotenv
 azure-cosmos>=4.7.0
 azure-functions
-azure-ai-documentintelligence
-azure-search-documents==11.5.0
-azure-identity==1.16.1
+azure-search-documents
+azure-identity
+azure-ai-formrecognizer==3.3.3
 tiktoken
+azure-ai-documentintelligence==1.0.0b4

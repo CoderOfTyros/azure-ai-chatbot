@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import List, Dict
 from datetime import datetime
 
-import tiktoken
+import tiktoken, base64
 
 from ..chatbot_function.embed import embed_text
 from ..chatbot_function.search_client import get_search_client
@@ -49,7 +49,16 @@ def upload_documents_to_search(documents: List[Dict]):
         batch = documents[i : i + batch_size]
         client.upload_documents(batch)
 
-def process_and_index_text(text: str, filename: str, *, title: str = "", language: str = "en",max_tokens_per_chunk: int = 300,
+
+def safe_id(value: str) -> str:
+    base = value.encode("utf-8")
+    encoded = base64.urlsafe_b64encode(base).decode("ascii")
+    return encoded.strip("=")
+
+
+
+
+def process_and_index_text(text: str, filename: str, *, title: str = "", max_tokens_per_chunk: int = 300,
     chunk_overlap: int = 60, encoding_name: str = "cl100k_base",):
 
     cleaned = clean_text(text)
@@ -66,11 +75,16 @@ def process_and_index_text(text: str, filename: str, *, title: str = "", languag
         return
 
     docs: List[Dict] = []
-    file_id = filename.rsplit(".", 1)[0]  # remove extension
+
+    base_name = filename.rsplit(".", 1)[0]   # e.g. "مدينة الظلال" # remove extension
+    file_id = safe_id(base_name)             # safe for Azure Search keys
+    title = base_name                        # human-friendly title
+
     created_at = datetime.utcnow().isoformat() + "Z"
 
     for i, chunk in enumerate(chunks, start=1):
         emb = embed_text(chunk)
+        print(f"[DEBUG] {filename}-chunk-{i} embedding length: {len(emb)}")
 
         doc = {
             "id": f"{file_id}-chunk-{str(i).zfill(4)}",
@@ -80,8 +94,6 @@ def process_and_index_text(text: str, filename: str, *, title: str = "", languag
             "chunk": chunk,
             "chunkId": i,
             "contentVector": emb,
-            "source": "uploaded",
-            "language": language,
             "createdAt": created_at,
         }
         docs.append(doc)

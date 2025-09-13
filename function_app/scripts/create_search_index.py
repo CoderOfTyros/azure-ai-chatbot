@@ -36,7 +36,7 @@ print("admin_key:", "SET" if admin_key else "MISSING")
 print("index_name:", index_name)
 
 if not endpoint or not admin_key or not index_name:
-    print("❌ Missing environment variables. Check .env (ENDPOINT / ADMIN_KEY or API_KEY / INDEX_NAME or INDEX).")
+    print("Missing environment variables. Check .env (ENDPOINT / ADMIN_KEY or API_KEY / INDEX_NAME or INDEX).")
     raise SystemExit(1)
 
 client = SearchIndexClient(endpoint=endpoint, credential=AzureKeyCredential(admin_key))
@@ -56,16 +56,15 @@ fields = [
     SearchField(
         name="contentVector",
         type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
-        searchable=True,                       # required for vector fields
+        searchable=True,  
+        retrievable=True,
+        hidden=False,                        # required for vector fields
         vector_search_dimensions=1536,         # match your embedding model
         vector_search_profile_name="my-profile"
         # Optionals you may add:
         # stored=False,                         # don't store a copy for retrieval
         # hidden=True,                          # don't return vector in results
     ),
-
-    SimpleField(name="source",    type=SearchFieldDataType.String, filterable=True, sortable=True),
-    SimpleField(name="language",  type=SearchFieldDataType.String, filterable=True),
     SimpleField(name="createdAt", type=SearchFieldDataType.DateTimeOffset, filterable=True, sortable=True),
 ]
 
@@ -94,4 +93,4 @@ index = SearchIndex(
 )
 
 result = client.create_or_update_index(index)
-print(f"✅ Index '{result.name}' created/updated successfully.")
+print(f"Index '{result.name}' created/updated successfully.")

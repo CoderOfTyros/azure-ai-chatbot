@@ -89,8 +89,20 @@ def trim_conversation_by_tokens(conversation, max_tokens=8192, model="gpt-4", sa
 def clean_text(text: str) -> str:
     if not text:
         return ""
+
+    # normalize newlines
     t = text.replace("\r\n", "\n").replace("\r", "\n")
+
+    # collapse spaces/tabs/formfeeds/vertical-tabs
     t = re.sub(r"[ \t\f\v]+", " ", t)
+
+    # join lines that are likely part of the same sentence
+    t = re.sub(r"(?<=\w)\n(?=\w)", " ", t)
+
+    # reduce 3+ newlines to 2 (paragraphs)
     t = re.sub(r"\n{3,}", "\n\n", t)
+
+    # strip non-printables
     t = "".join(ch for ch in t if ch == "\n" or ch == "\t" or ord(ch) >= 32)
+
     return t.strip()
