@@ -61,11 +61,17 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             )
 
        
-        # system_prompt = f"You are a helpful assistant specialized in {role}." if role else "You are a helpful assistant."
         system_prompt = (
-                   "You are a helpful assistant. You must only answer using the provided Sources "
-                   "about the stories in the knowledge base. If the question is unrelated or the "
-                   "Sources are not relevant, reply: 'I can only answer questions related to the stories in the knowledge base.'")
+    "You are a storytelling assistant specialized in retrieving and narrating stories "
+    "from the knowledge base. Always base your answers strictly on the provided Sources "
+    "when responding to questions about stories. "
+    "If the user greets you (e.g., 'hello', 'hi', 'how are you'), respond politely with a short greeting "
+    "but do not create new information outside the knowledge base. "
+    "For all other unrelated questions, reply exactly with: "
+    "'I can only answer questions related to the stories in the knowledge base.'"
+)
+
+        
 
         conversation = [{"role": "system", "content": system_prompt}]
         if session.messages:
@@ -79,9 +85,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         except Exception:
              search_query = user_input  
 
-        # ----                  RAG step                     ----
-        
-        # SEM_CFG = os.environ.get("AZURE_SEARCH_SEMANTIC_CONFIG")  
+        # ----                  RAG step                     ---- 
         passages = search_top_k_hybrid(search_query, k=5)
         sources_formatted = format_sources_for_prompt(passages)
         grounded_user_msg = make_grounded_user_message(user_input, sources_formatted)

@@ -3,9 +3,9 @@ from azure.search.documents.models import VectorizedQuery
 from .search_client import get_search_client
 from .embed import embed_text  
 
-# Fields in your RAG index
+
 RAG_SELECT = "title,chunk,chunkId,fileName"
-RAG_VECTOR_FIELD = "contentVector"  # embedding field in the index
+RAG_VECTOR_FIELD = "contentVector"  
 
 def search_top_k_hybrid(query: str, k: int = 5, semantic_config: Optional[str] = None) -> List[Dict[str, Any]]:
     """
@@ -22,7 +22,7 @@ def search_top_k_hybrid(query: str, k: int = 5, semantic_config: Optional[str] =
     )
 
     kwargs = dict(
-        search_text=query,  # keyword/BM25 and semantic 
+        search_text=query,  # keyword/BM25 and vector search
         vector_queries=[vq],
         select=RAG_SELECT,
         top=k,

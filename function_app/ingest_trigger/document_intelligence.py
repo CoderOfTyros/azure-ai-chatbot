@@ -1,5 +1,3 @@
-# text_extraction.py
-
 import os
 import io
 from PIL import Image
@@ -7,7 +5,7 @@ from azure.core.credentials import AzureKeyCredential
 from azure.core.exceptions import HttpResponseError, ResourceNotFoundError
 from azure.ai.formrecognizer import DocumentAnalysisClient
 
-# --- Configuration from environment ---
+
 _endpoint = os.environ.get("DOCUMENT_INTELLIGENCE_ENDPOINT")
 _key = os.environ.get("DOCUMENT_INTELLIGENCE_KEY")
 
@@ -20,7 +18,7 @@ if not _endpoint or not _key:
 # Normalize endpoint (avoid double slashes)
 _endpoint = _endpoint.rstrip("/")
 
-# --- Client instance (reuse across invocations) ---
+
 document_analysis_client = DocumentAnalysisClient(
     endpoint=_endpoint,
     credential=AzureKeyCredential(_key),
@@ -38,11 +36,11 @@ def _normalize_image_bytes(name: str, data: bytes) -> bytes:
         if im.mode not in ("RGB", "L"):
             im = im.convert("RGB")
         out = io.BytesIO()
-        im.save(out, format="PNG")  # lossless clean PNG
+        im.save(out, format="PNG")  
         return out.getvalue()
 
 
-# --- Main helper function ---
+
 def extract_text_from_document(file_bytes: bytes, filename: str = None) -> str:
     """
     Analyze a document using the prebuilt-read model (Form Recognizer v3)
