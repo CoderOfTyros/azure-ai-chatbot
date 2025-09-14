@@ -3,13 +3,13 @@ from azure.search.documents.models import VectorizedQuery
 from .search_client import get_search_client
 from .embed import embed_text  
 
-# Fields in your RAG index (adjust if yours differ)
-RAG_SELECT = "title,chunk,parent_id,chunk_id"
-RAG_VECTOR_FIELD = "text_vector"  # embedding field in the index
+
+RAG_SELECT = "title,chunk,chunkId,fileName"
+RAG_VECTOR_FIELD = "contentVector"  
 
 def search_top_k_hybrid(query: str, k: int = 5, semantic_config: Optional[str] = None) -> List[Dict[str, Any]]:
     """
-    Hybrid retrieval against your RAG index: BM25 over 'chunk' + vector over 'text_vector'.
+    Hybrid retrieval against your RAG index: BM25 over 'chunk' + vector over 'contentVector'.
     Returns: [{ title, content, raw }]
     """
     client = get_search_client()
@@ -17,12 +17,12 @@ def search_top_k_hybrid(query: str, k: int = 5, semantic_config: Optional[str] =
 
     vq = VectorizedQuery(
         vector=vec,
-        k_nearest_neighbors=k,   
+        k_nearest_neighbors=k,
         fields=RAG_VECTOR_FIELD
     )
 
     kwargs = dict(
-        search_text=query,  # keyword/BM25 and semantic 
+        search_text=query,  # keyword/BM25 and vector search
         vector_queries=[vq],
         select=RAG_SELECT,
         top=k,
@@ -33,7 +33,7 @@ def search_top_k_hybrid(query: str, k: int = 5, semantic_config: Optional[str] =
     try:
         results = client.search(**kwargs)
     except Exception:
-        # Fallback to keyword-only if vector fails (quota, field mismatch, etc.)
+        # Fallback to keyword-only if vector fails
         results = client.search(search_text=query, select=RAG_SELECT, top=k)
 
     passages: List[Dict[str, Any]] = []
@@ -50,5 +50,5 @@ def search_top_k_hybrid(query: str, k: int = 5, semantic_config: Optional[str] =
 def format_sources_for_prompt(passages: List[Dict[str, Any]]) -> str:
     lines = []
     for p in passages:
-        lines.append(f'{p["title"]}:{p["content"]}:')  
+        lines.append(f'{p["title"]}: {p["content"]}')
     return "\n".join(lines)

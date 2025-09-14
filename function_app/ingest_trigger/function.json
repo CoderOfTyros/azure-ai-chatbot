@@ -1,0 +1,11 @@
+{
+    "bindings": [
+        {
+            "name": "inputBlob",
+            "type": "blobTrigger",
+            "direction": "in",
+            "path": "knowledge-base/{name}",
+            "connection": "AZURE_STORAGE_CONNECTION_STRING"
+        }
+    ]
+}
