@@ -1,4 +1,3 @@
-# function_app/ingest_trigger/__init__.py
 import sys
 sys.stdout.reconfigure(encoding="utf-8")
 

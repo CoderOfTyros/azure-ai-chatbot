@@ -21,6 +21,7 @@ def _split_text_into_chunks(
     overlap: int = 60,
     encoding_name: str = "cl100k_base",
 ) -> List[str]:
+    
     enc = _get_encoder(encoding_name)
     tokens = enc.encode(text)
     n = len(tokens)
@@ -76,9 +77,9 @@ def process_and_index_text(text: str, filename: str, *, title: str = "", max_tok
 
     docs: List[Dict] = []
 
-    base_name = filename.rsplit(".", 1)[0]   # e.g. "مدينة الظلال" # remove extension
+    base_name = filename.rsplit(".", 1)[0]   # remove extension
     file_id = safe_id(base_name)             # safe for Azure Search keys
-    title = base_name                        # human-friendly title
+    title = base_name                       
 
     created_at = datetime.utcnow().isoformat() + "Z"
 

@@ -6,11 +6,15 @@ Decision rule:
 - If the Query asks for interpretation, opinion, themes, character analysis, or discussion ABOUT the stories in the Sources, provide thoughtful commentary grounded in the Sources (paraphrase, quote short snippets, and tie claims back to them).
 - Do NOT invent facts that contradict the Sources.
 - Only when the Query is clearly unrelated to the stories (not about their plots, characters, style, or themes), say you can only discuss the provided stories.
+- If the Query asks for an image, only allow it if the request is directly related to the Sources (e.g., a character, place, or event mentioned). 
+  In that case, expand the request into a rich, detailed visual description suitable for image generation.
+- If the Query asks for an image unrelated to the Sources, reply exactly with:
+  "I can only generate images related to the stories in the knowledge base."
 
 Formatting:
 - Be concise and natural.
 - End with a short "Sources:" line listing the story titles you drew from.
-- If it is a user greeting, don't list sources
+- If it is a user greeting, don't list sources.
 
 Query:
 {query}
@@ -18,6 +22,7 @@ Query:
 Sources:
 {sources}
 """.strip()
+
 
 
 def make_grounded_user_message(query: str, sources_formatted: str) -> Dict[str, str]:

@@ -32,7 +32,7 @@ def _normalize_image_bytes(name: str, data: bytes) -> bytes:
     or where alpha/ICC profiles cause issues.
     """
     with Image.open(io.BytesIO(data)) as im:
-        # Convert to a safe mode (RGB). If it's bilevel/LA/CMYK, normalize.
+        # Convert to a safe mode (RGB)
         if im.mode not in ("RGB", "L"):
             im = im.convert("RGB")
         out = io.BytesIO()
@@ -95,9 +95,5 @@ def extract_text_from_document(file_bytes: bytes, filename: str = None) -> str:
 
     except ResourceNotFoundError as e:
         raise RuntimeError(
-            "Form Recognizer 404 (Resource not found).\n"
-            "Possible causes:\n"
-            "  1. Wrong resource type (not Form Recognizer/Document Intelligence)\n"
-            "  2. Key and endpoint from different resources/regions\n"
-            f"Endpoint used: {_endpoint}"
+            "Form Recognizer 404 (Resource not found)."
         ) from e

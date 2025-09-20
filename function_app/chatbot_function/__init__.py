@@ -68,8 +68,13 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     "If the user greets you (e.g., 'hello', 'hi', 'how are you'), respond politely with a short greeting "
     "but do not create new information outside the knowledge base. "
     "For all other unrelated questions, reply exactly with: "
-    "'I can only answer questions related to the stories in the knowledge base.'"
-)
+    "'I can only answer questions related to the stories in the knowledge base.' "
+    "If the user asks for an image, only generate it if the image request is directly related "
+    "to the knowledge base content (e.g., a character, place, or event mentioned in the stories). "
+    "When generating such an image request, expand the query into a detailed visual description "
+    "that can be passed to the image generation function. "
+    "If the user asks for an image unrelated to the knowledge base, reply exactly with: "
+    "'I can only generate images related to the stories in the knowledge base.'")
 
         
 

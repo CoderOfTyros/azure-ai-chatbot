@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Create/Update a RAG-friendly Azure AI Search index (SDK 11.5.x)
 - Loads .env (AZURE_SEARCH_ENDPOINT, AZURE_SEARCH_ADMIN_KEY, AZURE_SEARCH_INDEX_NAME)
@@ -15,25 +14,21 @@ from azure.search.documents.indexes.models import (
     SearchIndex,
     SimpleField,
     SearchableField,
-    SearchField,               # <-- use for the vector field
+    SearchField,               
     SearchFieldDataType,
     VectorSearch,
-    HnswAlgorithmConfiguration,  # <-- correct class name in 11.5.x
+    HnswAlgorithmConfiguration,  
     VectorSearchProfile,
 )
 
-# --- Load .env from this script's folder ---
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(SCRIPT_DIR, ".env"))
 
 endpoint   = os.getenv("AZURE_SEARCH_ENDPOINT")
-admin_key  = os.getenv("AZURE_SEARCH_ADMIN_KEY") or os.getenv("AZURE_SEARCH_API_KEY")
-index_name = os.getenv("AZURE_SEARCH_INDEX_NAME") or os.getenv("AZURE_SEARCH_INDEX")
+admin_key  = os.getenv("AZURE_SEARCH_API_KEY")
+index_name = os.getenv("AZURE_SEARCH_INDEX")
 
-print("azure-search-documents version:", azsearch_version)
-print("endpoint:", endpoint)
-print("admin_key:", "SET" if admin_key else "MISSING")
-print("index_name:", index_name)
 
 if not endpoint or not admin_key or not index_name:
     print("Missing environment variables. Check .env (ENDPOINT / ADMIN_KEY or API_KEY / INDEX_NAME or INDEX).")
@@ -41,8 +36,7 @@ if not endpoint or not admin_key or not index_name:
 
 client = SearchIndexClient(endpoint=endpoint, credential=AzureKeyCredential(admin_key))
 
-# --- Fields ---
-# Use SearchField for the vector field so vector props serialize correctly on 11.5.x
+
 fields = [
     SimpleField(name="id",        type=SearchFieldDataType.String, key=True, filterable=True),
     SimpleField(name="fileId",    type=SearchFieldDataType.String, filterable=True, sortable=True),
@@ -52,18 +46,16 @@ fields = [
 
     SimpleField(name="chunkId",   type=SearchFieldDataType.Int32,  filterable=True, sortable=True),
 
-    # ---- Vector field (MUST be searchable=True; set dimensions + profile) ----
+    
     SearchField(
         name="contentVector",
         type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
         searchable=True,  
         retrievable=True,
-        hidden=False,                        # required for vector fields
-        vector_search_dimensions=1536,         # match your embedding model
+        hidden=False,                        
+        vector_search_dimensions=1536,         
         vector_search_profile_name="my-profile"
-        # Optionals you may add:
-        # stored=False,                         # don't store a copy for retrieval
-        # hidden=True,                          # don't return vector in results
+                              
     ),
     SimpleField(name="createdAt", type=SearchFieldDataType.DateTimeOffset, filterable=True, sortable=True),
 ]
@@ -73,19 +65,16 @@ vector_search = VectorSearch(
     algorithms=[
         HnswAlgorithmConfiguration(
             name="my-hnsw"
-            # You can optionally pass parameters via HnswParameters in newer SDKs.
-            # In 11.5.x, name alone is enough to create a default HNSW config. :contentReference[oaicite:2]{index=2}
         )
     ],
     profiles=[
         VectorSearchProfile(
             name="my-profile",
-            algorithm_configuration_name="my-hnsw",  # tie the field to this algorithm
+            algorithm_configuration_name="my-hnsw",  
         )
     ],
 )
 
-# --- Create or update index ---
 index = SearchIndex(
     name=index_name,
     fields=fields,
