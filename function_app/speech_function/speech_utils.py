@@ -1,6 +1,5 @@
-import os, io
+import os, logging
 import azure.cognitiveservices.speech as speechsdk
-from pydub import AudioSegment
 
 speech_key = os.environ.get("AZURE_SPEECH_KEY")
 speech_region = os.environ.get("AZURE_SPEECH_REGION")
@@ -26,11 +25,20 @@ def speech_to_text(audio_bytes: bytes) -> str:
     result = recognizer.recognize_once()
 
     if result.reason == speechsdk.ResultReason.RecognizedSpeech:
-        return result.text
+         logging.info(f"STT recognized: {result.text}")
+         return result.text
+    
     elif result.reason == speechsdk.ResultReason.NoMatch:
-        return "[Unrecognized speech]"
+         logging.warning(f"STT NoMatch: {result.no_match_details}")
+         return "[Unrecognized speech]"
+    
+    elif result.reason == speechsdk.ResultReason.Canceled:
+         cancellation = result.cancellation_details
+         logging.error(f"STT canceled: {cancellation.reason}, {cancellation.error_details}")
+         return "[Recognition canceled]"
+  
     else:
-        raise RuntimeError(f"STT failed: {result.reason}")
+         raise RuntimeError(f"STT failed: {result.reason}")
 
 
 # ---------- Text to Speech ----------
@@ -51,18 +59,4 @@ def text_to_speech(text: str) -> bytes:
 
 
 
-def normalize_audio_bytes(data: bytes) -> bytes:
-    """
-    Normalize raw audio bytes (any format) → PCM WAV, 16kHz mono, 16-bit.
-    Returns new WAV bytes.
-    """
-    # Load from bytes
-    audio = AudioSegment.from_file(io.BytesIO(data))
 
-    # Normalize
-    audio = audio.set_channels(1).set_frame_rate(16000).set_sample_width(2)
-
-    # Export back to bytes
-    out_io = io.BytesIO()
-    audio.export(out_io, format="wav", codec="pcm_s16le")
-    return out_io.getvalue()

@@ -3,7 +3,7 @@ import logging
 import json
 import base64
 
-from .speech_utils import speech_to_text, text_to_speech, normalize_audio_bytes
+from .speech_utils import speech_to_text, text_to_speech
 from .. import chatbot_function
 
 
@@ -32,7 +32,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             return func.HttpResponse("Missing audio file or text field.", status_code=400)
 
         audio_bytes = audio_file.read()
-        audio_bytes = normalize_audio_bytes(audio_bytes)
+     
 
         # --- Session ID handling ---
         session_id = req.params.get("session_id")

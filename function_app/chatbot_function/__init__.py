@@ -17,7 +17,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         body = req.get_json()
         user_input = body.get("message")
         session_id = body.get("session_id") or str(uuid.uuid4())
-        role = body.get("role", "")
+        skip_session_save = body.get("skip_session_save", False)
 
         if not user_input:
             return func.HttpResponse("Missing 'message' field.", status_code=400)
@@ -125,8 +125,10 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         reply = response.choices[0].message.content.strip()
         conversation.append({"role": "assistant", "content": reply})
 
-        session.messages = conversation[1:]
-        session.save()
+        # Only save to session if not skipping
+        if not skip_session_save:
+            session.messages = conversation[1:]
+            session.save()
 
         logging.info(f"Reply being returned to client: {reply}")
 
