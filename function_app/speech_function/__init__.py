@@ -26,7 +26,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 mimetype="application/json"
             )
 
-        # --- Case 2: STT + chatbot (no TTS here) ---
+        # --- Case 2: STT ---
         audio_file = req.files.get("file") if hasattr(req, "files") else None
         if not audio_file:
             return func.HttpResponse("Missing audio file or text field.", status_code=400)
@@ -34,17 +34,16 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         audio_bytes = audio_file.read()
      
 
-        # --- Session ID handling ---
+       
         session_id = req.params.get("session_id")
         if not session_id and hasattr(req, "form") and req.form is not None:
             session_id = req.form.get("session_id")
         logging.info(f"Session ID: {session_id}")
 
-        # --- STT ---
+        
         user_input = speech_to_text(audio_bytes)
         logging.info(f"STT result: {user_input}")
 
-        # --- Call chatbot_function ---
         body = {"message": user_input, "session_id": session_id}
         chatbot_req = func.HttpRequest(
             method="POST",
@@ -57,7 +56,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         reply_text = chatbot_data.get("reply", "")
 
-        # --- Response (text only, no TTS) ---
+        # STT response
         return func.HttpResponse(
             json.dumps({
                 "stt": user_input,

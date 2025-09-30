@@ -6,7 +6,7 @@ deployment = os.environ.get("AZURE_OPENAI_DALLE_DEPLOYMENT")
 api_version = os.environ.get("AZURE_OPENAI_API_VERSION", "2024-05-01-preview")
 
 def generate_image(prompt: str, size="1024x1024"):
-    # Azure requires the deployment path
+    # DALL-E deployment path
     url = f"{endpoint.rstrip('/')}/openai/deployments/{deployment}/images/generations?api-version={api_version}"
     headers = {"api-key": key, "Content-Type": "application/json"}
     payload = {"prompt": prompt, "size": size, "n": 1}

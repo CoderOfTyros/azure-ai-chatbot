@@ -125,7 +125,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         reply = response.choices[0].message.content.strip()
         conversation.append({"role": "assistant", "content": reply})
 
-        # Only save to session if not skipping
+ 
         if not skip_session_save:
             session.messages = conversation[1:]
             session.save()

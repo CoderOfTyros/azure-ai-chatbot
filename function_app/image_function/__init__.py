@@ -3,7 +3,7 @@ import json
 import logging
 import uuid
 
-from .. import chatbot_function   # reuse your chatbot (for knowledge-base prompts)
+from .. import chatbot_function   
 from .image_utils import generate_image, sanitize_prompt
 from ..chatbot_function.cosmos_session_manager import CosmosSessionManager
 
@@ -36,9 +36,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         chatbot_data = json.loads(chatbot_resp.get_body().decode())
         chatbot_reply = chatbot_data.get("reply", "")
         
-        # Check if chatbot says we can't generate this image
+        
         if "I can only generate images related to the stories in the knowledge base" in chatbot_reply:
-            # Save the user's original request and chatbot's response to the session
+           
             try:
                 session = CosmosSessionManager(session_id)
                 session.add_message("user", prompt)
