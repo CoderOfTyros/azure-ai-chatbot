@@ -28,7 +28,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             body=json.dumps({
                 "message": f"Describe this in visual detail for image generation: {prompt}",
                 "session_id": session_id,  
-                "skip_session_save": True  
+                "skip_session_save": True,
+                "allow_image_tool": False  
             }).encode("utf-8"),
             headers={"Content-Type": "application/json"},
         )
